@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Trash } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { Task } from '../types';
 import { isFuture, startOfDay } from 'date-fns';
 
@@ -14,6 +14,14 @@ export function TaskList({ tasks, onToggleTask, onDeleteTask }: TaskListProps) {
     return isFuture(startOfDay(new Date(date)));
   };
 
+  if (tasks.length === 0) {
+    return (
+      <div className="text-gray-500 text-center py-4">
+        No tasks for this day
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {tasks.map((task) => {
@@ -22,7 +30,7 @@ export function TaskList({ tasks, onToggleTask, onDeleteTask }: TaskListProps) {
         return (
           <div
             key={task.id}
-            className="flex items-center gap-2 p-3 bg-white rounded-lg shadow-sm"
+            className="flex items-center gap-2 p-3 bg-white rounded-lg shadow-sm group hover:bg-gray-50"
           >
             <button
               onClick={() => onToggleTask(task.id)}
@@ -41,14 +49,13 @@ export function TaskList({ tasks, onToggleTask, onDeleteTask }: TaskListProps) {
             <span className={`flex-1 ${task.completed ? 'line-through text-gray-500' : ''}`}>
               {task.text}
             </span>
-            {canEdit && (
-              <button
-                onClick={() => onDeleteTask(task.id)}
-                className="text-gray-400 hover:text-red-500"
-              >
-                <Trash className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={() => onDeleteTask(task.id)}
+              className="text-gray-400 hover:text-red-500 transition-colors"
+              title="Delete task"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
           </div>
         );
       })}
