@@ -4,6 +4,7 @@ export interface Task {
   completed: boolean;
   date: string; // ISO date string
   createdAt: string;
+  userId: string; // Add this to link tasks to users
 }
 
 export interface DayStats {

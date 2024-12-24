@@ -7,7 +7,7 @@ import { TaskList } from './components/TaskList';
 import { Heatmap } from './components/Heatmap';
 import { TaskInput } from './components/TaskInput';
 import { auth, db } from './lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { Task } from './types';
 import { isSameDay } from 'date-fns';
@@ -20,6 +20,8 @@ function AppContent() {
   useEffect(() => {
     if (!user) return;
 
+    console.log('Setting up tasks listener for user:', user.uid);
+
     const q = query(
       collection(db, 'tasks'),
       where('userId', '==', user.uid)
@@ -30,6 +32,7 @@ function AppContent() {
       snapshot.forEach((doc) => {
         tasksData.push({ id: doc.id, ...doc.data() } as Task);
       });
+      console.log('Fetched tasks:', tasksData);
       setTasks(tasksData);
     });
 
@@ -37,30 +40,59 @@ function AppContent() {
   }, [user]);
 
   const handleAddTask = async (text: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user logged in');
+      return;
+    }
 
-    const newTask = {
-      text,
-      completed: false,
-      date: selectedDate.toISOString(),
-      createdAt: new Date().toISOString(),
-      userId: user.uid,
-    };
+    try {
+      const newTask = {
+        text: text,
+        completed: false,
+        date: selectedDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        userId: user.uid
+      };
 
-    await addDoc(collection(db, 'tasks'), newTask);
+      await addDoc(collection(db, 'tasks'), newTask);
+      
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
   const handleToggleTask = async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    if (!user) return;
 
-    await updateDoc(doc(db, 'tasks', taskId), {
-      completed: !task.completed
-    });
+    try {
+      const taskRef = doc(db, 'tasks', taskId);
+      const task = tasks.find(t => t.id === taskId);
+      
+      if (!task) {
+        console.error('Task not found:', taskId);
+        return;
+      }
+
+      await updateDoc(taskRef, {
+        completed: !task.completed,
+        updatedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Error toggling task:', error);
+    }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    await deleteDoc(doc(db, 'tasks', taskId));
+    if (!user) return;
+
+    try {
+      const taskRef = doc(db, 'tasks', taskId);
+      await deleteDoc(taskRef);
+
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   if (loading) {

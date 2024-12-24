@@ -14,6 +14,8 @@ export function TaskInput({ selectedDate, onAddTask }: TaskInputProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskText.trim() || isPastDate) return;
+    
+    console.log('Submitting task:', newTaskText); // Debug log
     onAddTask(newTaskText);
     setNewTaskText('');
   };
@@ -41,10 +43,10 @@ export function TaskInput({ selectedDate, onAddTask }: TaskInputProps) {
         />
         <button
           type="submit"
-          disabled={isPastDate}
+          disabled={isPastDate || !newTaskText.trim()}
           className={`
             px-4 py-2 rounded-lg flex items-center gap-2
-            ${isPastDate
+            ${isPastDate || !newTaskText.trim()
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
               : 'bg-blue-500 text-white hover:bg-blue-600'
             }
